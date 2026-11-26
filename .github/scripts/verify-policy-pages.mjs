@@ -34,10 +34,14 @@ try {
 			const page = await context.newPage();
 			const errors = [];
 			page.on("pageerror", (error) => errors.push(error.message));
+			page.on("console", (message) => {
+				if (message.type() === "error") errors.push(message.text());
+			});
 			const response = await page.goto("https://xnotpro.site/", {
 				waitUntil: "networkidle",
 			});
 			assert.equal(response.status(), 200);
+			await page.locator(".startup-splash").waitFor({ state: "detached" });
 			const footer = page.locator("footer");
 			await footer
 				.getByRole("link", {
@@ -54,6 +58,7 @@ try {
 				})
 				.waitFor();
 			assert.match(await page.title(), /XNotPro/);
+			await page.locator(".startup-splash").waitFor({ state: "detached" });
 			assert.equal(
 				await page.locator("article h1").innerText(),
 				locale === "zh-CN" ? "隐私政策" : "Privacy Policy",
@@ -70,6 +75,13 @@ try {
 					`privacy-${locale}-${mobile ? "mobile-dark" : "desktop-light"}.png`,
 				),
 				fullPage: true,
+			});
+			await page.screenshot({
+				path: join(
+					output,
+					`privacy-${locale}-${mobile ? "mobile-dark" : "desktop-light"}-viewport.png`,
+				),
+				fullPage: false,
 			});
 			await page
 				.locator("article nav")
@@ -97,6 +109,7 @@ try {
 					.count(),
 				1,
 			);
+			await page.locator(".startup-splash").waitFor({ state: "detached" });
 			assert((await page.locator("article h2").count()) >= 9);
 			assert(
 				await page.evaluate(
