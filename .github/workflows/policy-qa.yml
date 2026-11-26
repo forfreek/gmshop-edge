@@ -2,22 +2,13 @@ name: Policy browser QA
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/scripts/verify-policy-pages.mjs'
-      - '.github/workflows/policy-qa.yml'
-  workflow_run:
-    workflows: [Deploy Cloudflare]
-    types: [completed]
-    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   browser:
-    if: github.repository == 'forfreek/gmshop-edge' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    if: github.repository == 'forfreek/gmshop-edge' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

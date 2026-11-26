@@ -20,8 +20,8 @@ The shared public footer links to both pages. Recheck the policies when adding
 analytics, uploads, providers or changing refund practices; do not claim a
 consent control exists before implementing it.
 
-The separate Policy browser QA workflow verifies the deployed site after a
-successful deploy and can rerun when its script changes, without redeploying.
+The separate Policy browser QA workflow verifies the deployed site only when
+manually dispatched. It does not gate or automatically follow app deployments.
 It uses temporary Chromium tooling and retains bilingual desktop/light and
 mobile/dark screenshots. Repository .github-only changes do not redeploy the app.
 
