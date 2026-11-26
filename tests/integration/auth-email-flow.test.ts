@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/d1";
 import { Miniflare } from "miniflare";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as schema from "#/db/schema";
 import { createAuth } from "#/features/auth/server/auth-factory";
 import {
@@ -26,7 +26,10 @@ describe("authentication email flow", { timeout: 30_000 }, () => {
 		await seed(database);
 	});
 
-	afterEach(async () => miniflare.dispose());
+	afterEach(async () => {
+		vi.restoreAllMocks();
+		await miniflare.dispose();
+	});
 
 	it("queues encrypted verification and reset messages without exposing tokens", async () => {
 		const auth = createEmailAuth(database);
@@ -333,6 +336,10 @@ describe("authentication email flow", { timeout: 30_000 }, () => {
 	});
 
 	it("rate limits repeated email change requests", async () => {
+		// Auth storage captures Date.now when the factory is created. Keep the
+		// four requests in one window even if CI crosses a real minute boundary.
+		const requestTime = Date.now();
+		vi.spyOn(Date, "now").mockReturnValue(requestTime);
 		const auth = createEmailAuth(database);
 		await verifySignup(
 			auth,
