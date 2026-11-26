@@ -715,6 +715,8 @@
 	"payment_channels_validation_serial_number": "证书序列号只能包含十六进制字符",
 	"payment_channels_validation_api_v3_key": "微信 APIv3 密钥必须正好为 32 个字符",
 	"payment_channels_validation_invalid": "此字段的值无效",
+	"email_layout_notice": "这是一封服务通知。请勿向任何人透露密码、验证码或完整交付凭据。",
+	"email_layout_store_link": "访问商城与联系客服",
 	"store_hero_title": "给想尝试的事，多一点工具",
 	"store_hero_subtitle": "探索 AI 与数字工具，为学习、创作和日常工作寻找更多可能。按需选择，具体内容与使用方式以商品说明为准。",
 	"store_search_placeholder": "搜索感兴趣的工具或服务…",

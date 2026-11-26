@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { consumeEntitlementAccess } from "#/features/entitlements/server/ledger";
+import { renderBrandedEmail } from "#/features/notifications/email-layout";
 import { emailMessageSchema } from "#/features/notifications/schema";
 import {
 	decryptNotificationConfig,
@@ -10,6 +11,7 @@ import {
 	type EmailProviderId,
 	sendProviderEmail,
 } from "#/features/notifications/server/email-provider";
+import { loadSiteBrandOrDefault } from "#/features/settings/server/site-brand";
 import { DomainError } from "#/lib/domain-error";
 import type { SupportedLocale } from "#/lib/locales";
 import type { NotificationQueueMessage } from "#/server/queue/types";
@@ -106,6 +108,16 @@ export async function enqueueEmailNotification(
 			"Notification encryption is unavailable",
 		);
 	const id = crypto.randomUUID();
+	if (!message.html) {
+		const brand = await loadSiteBrandOrDefault(db);
+		message.html = renderBrandedEmail({
+			name: brand.name,
+			subject: message.subject,
+			text: message.text,
+			url: runtime.betterAuthUrl,
+			locale: input.locale ?? "en-US",
+		});
+	}
 	const now = Date.now();
 	const encrypted = await encryptNotificationMessage(
 		JSON.stringify(message),

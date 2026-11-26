@@ -7,6 +7,11 @@ import {
 	publishPendingNotifications,
 } from "#/features/notifications/server/delivery";
 import { fanOutPendingCommerceNotifications } from "#/features/notifications/server/fanout";
+import { reconcileNotificationTemplates } from "#/features/notifications/server/reconcile-templates";
+import {
+	builtinNotificationTemplate,
+	legacyBuiltinNotificationTemplate,
+} from "#/features/notifications/templates";
 import type { NotificationQueueMessage } from "#/server/queue/types";
 import { applyMigrations } from "./migrations";
 
@@ -28,6 +33,34 @@ describe("notification delivery", { timeout: 30_000 }, () => {
 	afterEach(async () => {
 		vi.unstubAllGlobals();
 		await miniflare.dispose();
+	});
+
+	it("upgrades legacy defaults while preserving customized templates", async () => {
+		await reconcileNotificationTemplates(database);
+		const old = legacyBuiltinNotificationTemplate("order_paid", "zh-CN");
+		await database
+			.prepare(
+				"UPDATE notification_templates SET subject = ?, body = ? WHERE id = ?",
+			)
+			.bind(old.subject, old.body, "notification-email-order_paid-zh-CN")
+			.run();
+		await database
+			.prepare(
+				"UPDATE notification_templates SET body = 'My custom message' WHERE id = ?",
+			)
+			.bind("notification-email-delivery_ready-en-US")
+			.run();
+		await reconcileNotificationTemplates(database);
+		const updated = await database
+			.prepare("SELECT subject, body FROM notification_templates WHERE id = ?")
+			.bind("notification-email-order_paid-zh-CN")
+			.first();
+		expect(updated).toEqual(builtinNotificationTemplate("order_paid", "zh-CN"));
+		const custom = await database
+			.prepare("SELECT body FROM notification_templates WHERE id = ?")
+			.bind("notification-email-delivery_ready-en-US")
+			.first();
+		expect(custom).toEqual({ body: "My custom message" });
 	});
 
 	it("keeps message secrets out of D1 plaintext and Queue payloads", async () => {

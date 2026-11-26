@@ -142,11 +142,92 @@ const translatedTemplates: Partial<
 	},
 };
 
-export function builtinNotificationTemplate(
+export function legacyBuiltinNotificationTemplate(
 	event: CommerceNotificationEvent,
 	locale: SupportedLocale,
 ) {
 	return translatedTemplates[locale]?.[event] ?? englishTemplates[event];
+}
+
+const polishedTemplates: Record<
+	SupportedLocale,
+	Record<CommerceNotificationEvent, BuiltinTemplate>
+> = {
+	"zh-CN": {
+		order_paid: {
+			subject: "[{{site_name}}] 付款已确认",
+			body: "您好，\n\n我们已收到您的付款，将按商品说明安排交付。\n\n订单编号：{{order_number}}\n付款金额：{{amount}}\n\n查看订单与详情：{{order_url}}\n\n请妥善保管订单及交付凭据；如需协助，请通过网站联系客服。",
+		},
+		delivery_ready: {
+			subject: "[{{site_name}}] 交付内容已就绪",
+			body: "您好，\n\n您购买的商品已准备好，请进入订单查看领取或使用说明。\n\n订单编号：{{order_number}}\n商品名称：{{product_name}}\n\n查看订单与详情：{{order_url}}\n\n请妥善保管订单及交付凭据；如需协助，请通过网站联系客服。",
+		},
+		automation_ready: {
+			subject: "[{{site_name}}] 构建已完成",
+			body: "您好，\n\n构建任务已完成，请进入订单查看结果与可用制品。\n\n订单编号：{{order_number}}\n商品名称：{{product_name}}\n\n查看订单与详情：{{order_url}}\n\n请妥善保管订单及交付凭据；如需协助，请通过网站联系客服。",
+		},
+		automation_failed: {
+			subject: "[{{site_name}}] 构建需要处理",
+			body: "您好，\n\n本次构建未能完成，请查看订单状态或联系网站客服。\n\n订单编号：{{order_number}}\n商品名称：{{product_name}}\n\n查看订单与详情：{{order_url}}\n\n请妥善保管订单及交付凭据；如需协助，请通过网站联系客服。",
+		},
+		refund_succeeded: {
+			subject: "[{{site_name}}] 退款处理已完成",
+			body: "您好，\n\n退款已处理完成，实际到账时间以支付渠道为准。\n\n订单编号：{{order_number}}\n\n查看订单与详情：{{order_url}}\n\n请妥善保管订单及交付凭据；如需协助，请通过网站联系客服。",
+		},
+		refund_failed: {
+			subject: "[{{site_name}}] 退款需要处理",
+			body: "您好，\n\n本次退款未能完成，请联系客服核实，避免重复操作。\n\n订单编号：{{order_number}}\n\n查看订单与详情：{{order_url}}\n\n请妥善保管订单及交付凭据；如需协助，请通过网站联系客服。",
+		},
+		after_sale_updated: {
+			subject: "[{{site_name}}] 售后进度已更新",
+			body: "您好，\n\n您的售后申请有了新的处理进展。\n\n订单编号：{{order_number}}\n工单编号：{{case_number}}\n处理说明：{{resolution}}\n\n查看订单与详情：{{order_url}}\n\n请妥善保管订单及交付凭据；如需协助，请通过网站联系客服。",
+		},
+		entitlement_expiring: {
+			subject: "[{{site_name}}] 使用权益即将到期",
+			body: "您好，\n\n请查看订单中的有效期及续购选项，按需安排后续使用。\n\n商品名称：{{product_name}}\n\n查看订单与详情：{{order_url}}\n\n请妥善保管订单及交付凭据；如需协助，请通过网站联系客服。",
+		},
+	},
+	"en-US": {
+		order_paid: {
+			subject: "[{{site_name}}] Payment confirmed",
+			body: "Hello,\n\nWe have received your payment. Delivery will follow the product description.\n\nOrder: {{order_number}}\nAmount paid: {{amount}}\n\nView your order：{{order_url}}\n\nKeep delivery credentials private. For help, contact support through the store.",
+		},
+		delivery_ready: {
+			subject: "[{{site_name}}] Your delivery is ready",
+			body: "Hello,\n\nOpen your order for access and usage instructions.\n\nOrder: {{order_number}}\nProduct: {{product_name}}\n\nView your order：{{order_url}}\n\nKeep delivery credentials private. For help, contact support through the store.",
+		},
+		automation_ready: {
+			subject: "[{{site_name}}] Build completed",
+			body: "Hello,\n\nYour build is complete. View the results and available artifacts in your order.\n\nOrder: {{order_number}}\nProduct: {{product_name}}\n\nView your order：{{order_url}}\n\nKeep delivery credentials private. For help, contact support through the store.",
+		},
+		automation_failed: {
+			subject: "[{{site_name}}] Your build needs attention",
+			body: "Hello,\n\nThe build could not be completed. Check your order or contact store support.\n\nOrder: {{order_number}}\nProduct: {{product_name}}\n\nView your order：{{order_url}}\n\nKeep delivery credentials private. For help, contact support through the store.",
+		},
+		refund_succeeded: {
+			subject: "[{{site_name}}] Refund processed",
+			body: "Hello,\n\nYour refund has been processed. Arrival time depends on the payment provider.\n\nOrder: {{order_number}}\n\nView your order：{{order_url}}\n\nKeep delivery credentials private. For help, contact support through the store.",
+		},
+		refund_failed: {
+			subject: "[{{site_name}}] Your refund needs attention",
+			body: "Hello,\n\nThe refund could not be completed. Contact support before retrying.\n\nOrder: {{order_number}}\n\nView your order：{{order_url}}\n\nKeep delivery credentials private. For help, contact support through the store.",
+		},
+		after_sale_updated: {
+			subject: "[{{site_name}}] Support update",
+			body: "Hello,\n\nThere is an update to your support request.\n\nOrder: {{order_number}}\nCase: {{case_number}}\nResolution: {{resolution}}\n\nView your order：{{order_url}}\n\nKeep delivery credentials private. For help, contact support through the store.",
+		},
+		entitlement_expiring: {
+			subject: "[{{site_name}}] Your access expires soon",
+			body: "Hello,\n\nReview the expiry date and available renewal options in your order.\n\nProduct: {{product_name}}\n\nView your order：{{order_url}}\n\nKeep delivery credentials private. For help, contact support through the store.",
+		},
+	},
+};
+
+export function builtinNotificationTemplate(
+	event: CommerceNotificationEvent,
+	locale: SupportedLocale,
+) {
+	return polishedTemplates[locale][event];
 }
 
 export const builtinNotificationTemplateRows = supportedLocales.flatMap(

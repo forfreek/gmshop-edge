@@ -715,6 +715,8 @@
 	"payment_channels_validation_serial_number": "The certificate serial number may contain hexadecimal characters only",
 	"payment_channels_validation_api_v3_key": "The WeChat APIv3 key must contain exactly 32 characters",
 	"payment_channels_validation_invalid": "This field value is invalid",
+	"email_layout_notice": "This is a service notification. Never share passwords, verification codes or full delivery credentials.",
+	"email_layout_store_link": "Visit the store and contact support",
 	"store_hero_title": "More tools for what you want to try",
 	"store_hero_subtitle": "Explore AI and digital tools for learning, creating, and everyday work. Choose what suits your needs, and check each product description for details and instructions.",
 	"store_search_placeholder": "Search tools or services that interest you…",
