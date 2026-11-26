@@ -20,6 +20,11 @@ The shared public footer links to both pages. Recheck the policies when adding
 analytics, uploads, providers or changing refund practices; do not claim a
 consent control exists before implementing it.
 
+The separate Policy browser QA workflow verifies the deployed site after a
+successful deploy and can rerun when its script changes, without redeploying.
+It uses temporary Chromium tooling and retains bilingual desktop/light and
+mobile/dark screenshots. Repository .github-only changes do not redeploy the app.
+
 政策正文使用 Paraglide 双语消息；两个页面均公开访问，共享商城页脚入口。
 后续接入统计、上传、服务商或调整退款规则时，应同步核对正文与实际行为。
 

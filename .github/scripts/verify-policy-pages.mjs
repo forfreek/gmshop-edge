@@ -46,6 +46,13 @@ try {
 				})
 				.click();
 			await page.waitForURL("https://xnotpro.site/privacy");
+			await page
+				.getByRole("heading", {
+					level: 1,
+					name: locale === "zh-CN" ? "隐私政策" : "Privacy Policy",
+					exact: true,
+				})
+				.waitFor();
 			assert.match(await page.title(), /XNotPro/);
 			assert.equal(
 				await page.locator("article h1").innerText(),
@@ -73,6 +80,13 @@ try {
 				.focus();
 			await page.keyboard.press("Enter");
 			await page.waitForURL("https://xnotpro.site/terms");
+			await page
+				.getByRole("heading", {
+					level: 1,
+					name: locale === "zh-CN" ? "使用条款" : "Terms of Service",
+					exact: true,
+				})
+				.waitFor();
 			assert.equal(
 				await page.locator("article h1").innerText(),
 				locale === "zh-CN" ? "使用条款" : "Terms of Service",

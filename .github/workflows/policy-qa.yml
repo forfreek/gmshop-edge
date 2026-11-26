@@ -1,0 +1,40 @@
+name: Policy browser QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/verify-policy-pages.mjs'
+      - '.github/workflows/policy-qa.yml'
+  workflow_run:
+    workflows: [Deploy Cloudflare]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    if: github.repository == 'forfreek/gmshop-edge' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install temporary browser tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/policy-browser" --no-save --no-package-lock playwright@1.65.1
+          node "$RUNNER_TEMP/policy-browser/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Verify public policy navigation
+        run: node .github/scripts/verify-policy-pages.mjs
+      - name: Save policy screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-screenshots
+          path: ${{ runner.temp }}/policy-screenshots
+          if-no-files-found: ignore

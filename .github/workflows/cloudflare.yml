@@ -3,6 +3,7 @@ name: Deploy Cloudflare
 on:
   push:
     branches: [main]
+    paths-ignore: ['.github/**']
   workflow_dispatch:
 
 permissions:
@@ -61,16 +62,3 @@ jobs:
             fi
             echo "Verified $path"
           done
-      - name: Install temporary browser tools
-        run: |
-          npm install --prefix "$RUNNER_TEMP/policy-browser" --no-save --no-package-lock playwright@1.65.1
-          node "$RUNNER_TEMP/policy-browser/node_modules/playwright/cli.js" install --with-deps chromium
-      - name: Verify policy navigation in Chromium
-        run: node .github/scripts/verify-policy-pages.mjs
-      - name: Save policy screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: policy-screenshots
-          path: ${{ runner.temp }}/policy-screenshots
-          if-no-files-found: ignore
