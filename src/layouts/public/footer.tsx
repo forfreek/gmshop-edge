@@ -14,7 +14,24 @@ export function PublicFooter() {
 				<Link className="inline-flex shrink-0" to="/">
 					<AppTitle />
 				</Link>
-				<div className="flex w-full items-center justify-between gap-4 text-muted-foreground text-xs sm:ms-auto sm:w-auto sm:justify-end">
+				<div className="flex w-full flex-wrap items-center gap-x-5 gap-y-3 text-muted-foreground text-xs sm:ms-auto sm:w-auto sm:justify-end">
+					<nav
+						aria-label={m.legal_navigation()}
+						className="flex flex-wrap gap-x-5 gap-y-2"
+					>
+						<Link
+							className="inline-flex min-h-6 items-center hover:text-primary hover:underline"
+							to="/privacy"
+						>
+							{m.legal_privacy_title()}
+						</Link>
+						<Link
+							className="inline-flex min-h-6 items-center hover:text-primary hover:underline"
+							to="/terms"
+						>
+							{m.legal_terms_title()}
+						</Link>
+					</nav>
 					<p className="min-w-0 truncate">
 						{m.public_footer_copyright({
 							year: new Date().getFullYear(),

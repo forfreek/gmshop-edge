@@ -30,10 +30,10 @@ jobs:
       - name: Quality gate
         run: |
           bun run generate-paraglide
+          bun run build
           bun run typecheck
           bun run test
           bun run check
-          bun run build
           bun run build:bun
       - name: Prepare resources, migrate, and build Workers
         env:
@@ -49,3 +49,28 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bunx --no-install wrangler deploy --config dist/server/wrangler.json
+      - name: Verify public policy pages
+        run: |
+          for path in / /privacy /terms; do
+            curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 30 "https://xnotpro.site$path" -o /tmp/gmshop-policy.html
+            grep -q 'href="/privacy"' /tmp/gmshop-policy.html
+            grep -q 'href="/terms"' /tmp/gmshop-policy.html
+            if [ "$path" != "/" ]; then
+              grep -q 'support@xnotpro.site' /tmp/gmshop-policy.html
+              grep -q '<h1' /tmp/gmshop-policy.html
+            fi
+            echo "Verified $path"
+          done
+      - name: Install temporary browser tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/policy-browser" --no-save --no-package-lock playwright@1.65.1
+          node "$RUNNER_TEMP/policy-browser/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Verify policy navigation in Chromium
+        run: node .github/scripts/verify-policy-pages.mjs
+      - name: Save policy screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-screenshots
+          path: ${{ runner.temp }}/policy-screenshots
+          if-no-files-found: ignore
