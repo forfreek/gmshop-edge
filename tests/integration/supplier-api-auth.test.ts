@@ -1,5 +1,14 @@
 import { Miniflare } from "miniflare";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import {
+	afterAll,
+	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from "vitest";
 import { authenticateSupplierApi } from "#/features/supplier-api/server/auth";
 import { signGmshopEdgeRequest } from "#/features/suppliers/providers/signatures";
 import { encryptSecret } from "#/lib/secrets";
@@ -8,7 +17,6 @@ import {
 	createInitialRuntimeConfig,
 	runtimeConfigEntries,
 } from "#/server/runtime-config";
-import { awaitFreshRateLimitWindow } from "../helpers/rate-limit-window";
 import { applyMigrations } from "./migrations";
 
 const apiKeyId = "gme_supplier_api_auth_fixture";
@@ -68,9 +76,24 @@ describe("supplier API authentication", () => {
 				)
 				.bind(keyRowId, apiKeyId, encrypted, now, now),
 		]);
-	});
+	}, 30_000);
 
 	afterAll(async () => miniflare.dispose());
+
+	beforeEach(async () => {
+		// Signatures and limit buckets share one fixed instant. Waiting for a real
+		// minute boundary can exceed the test timeout before any request is sent.
+		vi.spyOn(Date, "now").mockReturnValue(now);
+		await db.batch([
+			db.prepare("DELETE FROM rate_limit_counters"),
+			db.prepare(
+				"DELETE FROM replay_receipts WHERE namespace = 'supplier_api'",
+			),
+		]);
+		nonceSequence = 0;
+	});
+
+	afterEach(() => vi.restoreAllMocks());
 
 	function signedRequest(
 		overrides: {
@@ -142,8 +165,9 @@ describe("supplier API authentication", () => {
 		expect(replays?.count).toBe(0);
 	});
 
+	// Sixty sequential signed requests use real crypto and Miniflare D1 I/O;
+	// this verifies quota isolation, not a five-second performance budget.
 	it("refuses a flood of forged requests from one client before doing signature work", async () => {
-		await awaitFreshRateLimitWindow();
 		const forger = "203.0.113.9";
 		for (let index = 0; index < 60; index += 1)
 			await expect(
@@ -184,7 +208,7 @@ describe("supplier API authentication", () => {
 			[`supplier-api:invalid:${forger}`]: 60,
 			[`supplier-api:key:${keyRowId}`]: 1,
 		});
-	});
+	}, 30_000);
 
 	it("charges per-key and per-user budgets only after a valid signature, then records the nonce", async () => {
 		const nonce = "nonce-replayed-fixture-0001";
@@ -197,15 +221,15 @@ describe("supplier API authentication", () => {
 			allowedCallbackOrigin: null,
 		});
 		expect(await budgets()).toMatchObject({
-			[`supplier-api:key:${keyRowId}`]: 2,
-			"supplier-api:user:api-user": 2,
+			[`supplier-api:key:${keyRowId}`]: 1,
+			"supplier-api:user:api-user": 1,
 		});
 		await expect(
 			authenticateSupplierApi(signedRequest({ nonce }), db, ""),
 		).rejects.toMatchObject({ code: "supplier_replay", status: 409 });
 		expect(await budgets()).toMatchObject({
-			[`supplier-api:key:${keyRowId}`]: 3,
-			"supplier-api:user:api-user": 3,
+			[`supplier-api:key:${keyRowId}`]: 2,
+			"supplier-api:user:api-user": 2,
 		});
 	});
 });
